@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Note Taking App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.19.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.19.1/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-100 p-4">
+    <div class="container mx-auto">
+        <h1 class="text-3xl font-bold mb-4">Note Taking App</h1>
+        <div class="mb-4">
+            <textarea id="noteInput" class="w-full p-2 border rounded mb-2" placeholder="Write your note..."></textarea>
+            <button onclick="addNote()" class="bg-blue-500 text-white p-2 rounded">Add Note</button>
+        </div>
+        <div id="notesContainer" class="space-y-2"></div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDLgA8WpnEk42HoZMlw6hGPkltccA7VFC0",
+    authDomain: "test01-d8144.firebaseapp.com",
+    projectId: "test01-d8144",
+    storageBucket: "test01-d8144.firebasestorage.app",
+    messagingSenderId: "1059356582195",
+    appId: "1:1059356582195:web:d952723afb93b86c169e46",
+    measurementId: "G-2XY3DJSF5J"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        function addNote() {
+            const noteInput = document.getElementById('noteInput');
+            const noteText = noteInput.value;
+            if (noteText.trim() === '') {
+                alert('Note cannot be empty!');
+                return;
+            }
+            db.collection('notes').add({
+                text: noteText,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                noteInput.value = '';
+                loadNotes();
+            }).catch((error) => {
+                alert('Error adding note: ' + error.message);
+            });
+        }
+
+        function loadNotes() {
+            const notesContainer = document.getElementById('notesContainer');
+            notesContainer.innerHTML = '';
+            db.collection('notes').orderBy('timestamp', 'desc').get()
+                .then((querySnapshot) => {
+                    querySnapshot.forEach((doc) => {
+                        const note = doc.data().text;
+                        const noteElement = document.createElement('div');
+                        noteElement.className = 'p-2 bg-white border rounded shadow';
+                        noteElement.textContent = note;
+                        notesContainer.appendChild(noteElement);
+                    });
+                }).catch((error) => {
+                    alert('Error loading notes: ' + error.message);
+                });
+        }
+
+        window.onload = loadNotes;
+    </script>
+</body>
+</html>
